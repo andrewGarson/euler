@@ -1,7 +1,30 @@
+#include <stdlib.h>
 #include <stdio.h>
 
-#include "lib/gcd.h"
+#include "lib/totient.h"
 #include "lib/primes.h"
+
+#define TARGET 1000000
+
+// this problem is basically the sum of totient(n) for n in [2,TARGET]
+int main() {
+
+  int *phi_cache;
+  phi_cache = calloc((TARGET+1), sizeof(int)); 
+
+  int primes[1000];
+  generate_primes(primes, 1000);
+
+  long long sum = 0;
+
+  for(int d = 2; d <= TARGET; d++){
+    sum += phi(d, primes, 1000, phi_cache);
+  }
+
+  printf("Number of proper reduced fractions: %lld\n", sum);
+
+  return 0;
+}
 
 
 /*

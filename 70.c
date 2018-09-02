@@ -19,8 +19,7 @@ struct Result {
 
 int main(int argc, char *argv[]){
   int *phi_cache; 
-  phi_cache = malloc((TARGET+1) * sizeof(int)); // 40MB cache -- lol
-  phi_cache[1] = 1;
+  phi_cache = calloc((TARGET+1), sizeof(int)); // 40MB cache -- lol
 
   // calculate the first 1000 primes to use as a hint to our phi function
   // we only need up to sqrt(TARGET), and this is more than sufficient

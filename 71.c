@@ -62,14 +62,6 @@ int main() {
       }
     }
 
-    if(start < 0) {
-      log_debug("HOW THE HELL???\n");
-      log_debug("result: %d/%d\n", result.numerator, result.denominator);
-      log_debug("start: %lld, end: %lld\n", start, end);
-      log_debug("start = (%d * %d) / %d\n", d, result.numerator, result.denominator);
-      return 1;
-    }
-
     for(long long  n = start; n <= end; n+=step){
       if(gcd_stein(n,d) == 1) {
         log_debug("setting result = %d/%d\n", n, d);

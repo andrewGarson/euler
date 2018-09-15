@@ -17,6 +17,8 @@ int log_get_level();
 void log_info(const char *format, ...); 
 void log_debug(const char *format, ...);
 
+void wait_for_user(const char *format, ...);
+
 #define TIME_START \
 {\
   clock_t start; \

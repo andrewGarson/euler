@@ -45,3 +45,14 @@ double time_func(TimeWrapper *func) {
   t = clock() - t;
   return ((double)t)/CLOCKS_PER_SEC;
 }
+
+void wait_for_user(const char *format, ...){
+  va_list args;
+  va_start(args, format);
+  vprintf(format, args);
+
+  getchar();
+
+  va_end(args);
+}
+

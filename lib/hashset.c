@@ -32,7 +32,7 @@ void hashset_print(HashSet *hashset) {
   printf("{\n");
   for(int i = 0; i < hashset->buckets_size; i++){
     printf("\t[%d] -> ", i);
-    list_print(hashset->buckets[i]);
+    list_iterate(hashset->buckets[i], &int_list_print_callback);
   }
   printf("}\n");
 }
@@ -43,12 +43,16 @@ List *bucket_for(HashSet *hashset, int n){
 
 void hashset_insert(HashSet *hashset, int n){
   List *bucket = bucket_for(hashset, n);
-  list_insert_front(bucket, n);
+  int *value = calloc(1, sizeof(int));
+  *value = n;
+  list_insert_front(bucket, value);
 }
 
 int hashset_includes(HashSet *hashset, int n){
   List *bucket = bucket_for(hashset, n);
-  return list_index_of(bucket, n) != -1;
+  int *value = calloc(1, sizeof(int));
+  *value = n;
+  return list_index_of(bucket, value, &int_list_equality) != -1;
 }
 
 

@@ -6,7 +6,7 @@
 
 // private 
 
-ListNode *list_create_node(int value){
+ListNode *list_create_node(void *value){
   ListNode *new_node = calloc(1, sizeof(ListNode));
   if(!new_node) { return 0; }
 
@@ -36,7 +36,7 @@ int list_get_node_at(List *list, int index, ListNode **out) {
 
 // public 
 
-List *list_create(List *head) {
+List *list_create() {
   List *list = calloc(1, sizeof(List));
 
   list->head = NULL;
@@ -55,6 +55,8 @@ void list_destroy(List **list) {
     release_me = next;
     next = next->next;
 
+    free(release_me->value);
+    release_me->value = NULL;
     release_me->next = NULL;
     release_me->prev = NULL;
 
@@ -65,27 +67,24 @@ void list_destroy(List **list) {
   *list = NULL;
 }
 
-void list_print(List *list){
+void list_iterate(List *list, t_list_iterate_callback *callback){
   ListNode *current = list->head;
-
   while(NULL != current){
-    printf("%d -> ", current->value);
+    (*callback)(current->value);
     current = current->next;
   }
-  printf("null\n");
 }
 
-void list_print_reverse(List *list){
+void list_print_reverse(List *list, t_list_iterate_callback *callback){
   ListNode *current = list->tail;
 
   while(NULL != current){
-    printf("%d -> ", current->value);
+    (*callback)(current->value);
     current = current->prev;
   }
-  printf("null\n");
 }
 
-int list_insert_front(List *list, int value){
+int list_insert_front(List *list, void *value){
   ListNode *new_node = list_create_node(value);
   if(!new_node) { return 0; }
 
@@ -105,7 +104,7 @@ int list_insert_front(List *list, int value){
   return 1;
 }
 
-int list_insert_back(List *list, int value){
+int list_insert_back(List *list, void *value){
   ListNode *new_node = list_create_node(value);
   if(!new_node) { return 0; }
 
@@ -124,7 +123,7 @@ int list_insert_back(List *list, int value){
   return 1;
 }
 
-int list_insert_at(List *list, int value, int index){
+int list_insert_at(List *list, void *value, int index){
   if(index <= 0) {
     return list_insert_front(list, value);
   }
@@ -153,8 +152,7 @@ int list_insert_at(List *list, int value, int index){
   return 1;
 }
 
-int list_get_front(List *list, int *out){
-  if(!out) { return 0; }
+int list_get_front(List *list, void **out){
   if(!list->head) { return 0; }
 
   *out = list->head->value;
@@ -162,7 +160,7 @@ int list_get_front(List *list, int *out){
   return 1;
 }
 
-int list_get_back(List *list, int *out){
+int list_get_back(List *list, void **out){
   if(!out) { return 0; }
   if(!list->tail) { return 0; }
 
@@ -171,7 +169,7 @@ int list_get_back(List *list, int *out){
   return 1;
 }
 
-int list_get_at(List *list, int index, int *out){
+int list_get_at(List *list, int index, void **out){
   ListNode *node;
   if(list_get_node_at(list, index, &node)){
     *out = node->value;
@@ -219,15 +217,32 @@ int list_remove_back(List *list){
   return 1;
 }
 
-int list_index_of(List *list, int n) {
+int list_index_of(List *list, void *search, t_list_item_equality *equals) {
   ListNode *current = list->head;
   int i = 0;
   while(current) {
-    if(current->value == n){
+    if((*equals)(current->value, search) == 0){
       return i;
     }
     i++;
     current = current->next;
   }
   return -1;
+}
+
+
+
+// int list helpers
+
+int int_list_equality(void *lhs, void *rhs) {
+  return *((int *)lhs) - *((int *)rhs);
+}
+
+void int_list_print_callback(void *value){
+  printf("%d -> ", *((int *)value));
+}
+
+void print_integer_list(List *list){
+  list_iterate(list, &int_list_print_callback);
+  printf("\u2205\n");
 }

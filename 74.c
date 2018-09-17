@@ -19,9 +19,12 @@ int sum_of_digit_factorials(int n) {
   return sum;
 }
 
+
+
 int factorial_cycle(int n, int *cycle_length_cache, int cache_size) {
 
   List *list = list_create();
+
   int current = n;
   int index_of_current = -1;
 
@@ -31,10 +34,15 @@ int factorial_cycle(int n, int *cycle_length_cache, int cache_size) {
   // any number we've encountered before will have a value in the cache
   // the number will either be on an arm or the first number in a loop
   while(cycle_length_cache[current] == 0 && index_of_current == -1){
+    int *value = calloc(1, sizeof(int));
+    *value = current;
     log_debug("Checking: %d\n", current);
-    list_insert_back(list, current);
+    list_insert_back(list, value);
+
     current = sum_of_digit_factorials(current);
-    index_of_current = list_index_of(list, current);
+    int *new_current = calloc(1, sizeof(int));
+    *new_current = current;
+    index_of_current = list_index_of(list, new_current, &int_list_equality);
   }
 
   // can't check for index_of_current == -1 to differentiate the
@@ -48,7 +56,7 @@ int factorial_cycle(int n, int *cycle_length_cache, int cache_size) {
     int i = 0;
     ListNode *node = list->head;
     while(node){
-      cycle_length_cache[node->value] = total_cycle_count - i;
+      cycle_length_cache[*((int *)(node->value))] = total_cycle_count - i;
       i++;
       node = node->next;
     }
@@ -60,9 +68,9 @@ int factorial_cycle(int n, int *cycle_length_cache, int cache_size) {
     ListNode * node = list->head;
     for(int i = 0; i < list->length; i++){
       if(i < index_of_current) {
-        cycle_length_cache[node->value] = list->length - i;
+        cycle_length_cache[*((int *)(node->value))] = list->length - i;
       } else {
-        cycle_length_cache[node->value] = list->length - index_of_current;
+        cycle_length_cache[*((int *)(node->value))] = list->length - index_of_current;
       }
       node = node->next;
     }
@@ -75,6 +83,7 @@ int factorial_cycle(int n, int *cycle_length_cache, int cache_size) {
 int main() {
 
   log_set_level(INFO);
+
   //printf("540 -> %d\n\n", sum_of_digit_factorials(540));
   
   // the biggest number we care about is 1000000
@@ -84,6 +93,9 @@ int main() {
   int cache_size = 6 * (9*8*7*6*5*4*3*2);
   int *cycle_length_cache = calloc(cache_size, sizeof(int));
   
+  //factorial_cycle(69, cycle_length_cache, cache_size);
+  //return 0;
+
   int result = 0;
 
   for(int i = 0; i<TARGET; i++) {

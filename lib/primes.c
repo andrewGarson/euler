@@ -1,7 +1,8 @@
-#include "debug.h"
-
-#include "primes.h"
 #include <stdio.h>
+#include <limits.h>
+
+#include "debug.h"
+#include "primes.h"
 
 void generate_primes(int primes[], int how_many) {
   int count = 0;
@@ -132,4 +133,12 @@ int is_prime(int p){
   // therefore we can do just 3 itterations and get an accurate result for 32 bit integers
   int small_primes[] = {2, 7, 61};
   return miller_rabin(p, small_primes, 3);
+}
+
+int next_prime(int n){
+  if(n < 2) { return 2; }
+  for(int m = n + 1; m <= INT_MAX; m++){
+    if(is_prime(m)) { return m; }
+  }
+  return -1;
 }

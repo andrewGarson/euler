@@ -40,6 +40,7 @@ int list_index_of(List *list, void *search, t_list_item_equality *equals);
 
 int int_list_equality(void *lhs, void *rhs);
 void int_list_print_callback(void *value);
+void int_list_insert_back(List *list, int new_value);
 
 void print_integer_list(List *list);
 

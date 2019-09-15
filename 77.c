@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "lib/list.h"
 #include "lib/primes.h"
@@ -18,155 +19,111 @@
  * the sum of primes in over five thousand different ways?
  */
 
+typedef struct {
+  List *primes;
+  int largest_prime;
+  int* ways;
+  int ways_length;
+  int target;
+} ProblemState;
 
-int *ways;
-void expand_ways(int new_target){
-  int *new_ways = realloc(ways, new_target + 1);
-  if(new_ways) {
-    ways = new_ways;
-  } else {
-    printf("Failed to extend ways array\n");
-    exit(1);
+void print_ways(ProblemState *state) {
+  for(int i = 0; i < state->ways_length; i++){
+    printf("%d: %d\n", i, state->ways[i]);
   }
 }
 
-int found_5000(int target) {
-  for(int i = 0; i<=target; i++) {
-    if(ways[i] >= 5000) { return i; }
-  }
-  return -1;
+void expand_ways(ProblemState *state) {
+  state->ways = realloc(state->ways, (2*state->ways_length)*sizeof(int));
+  memset(state->ways +  state->ways_length, 0, state->ways_length * sizeof(int));
+  state->ways_length = 2*state->ways_length;
+  printf("\nExpanded ways array\n");
 }
 
 int expand_primes(int biggest_prime, List *primes) {
   int *next = calloc(1, sizeof(int));
   *next = next_prime(biggest_prime);
-  printf("expand from: %d\n", biggest_prime);
-  printf("next: %d\n", *next);
   list_insert_back(primes, next); 
-  printf("next prime inserted\n\n");
+  printf("expanding primes to ");
+  print_integer_list(primes);
   return *next;
 }
 
+ProblemState *initialize() {
+  ProblemState *state = calloc(1, sizeof(ProblemState));
+  state->primes = list_create();
+  int_list_insert_back(state->primes, 2);
+  state->largest_prime = 2;
+
+  state->ways = (int *)calloc(3, sizeof(int));
+  state->ways_length = 3;
+  state->ways[0] = 1;
+  state->ways[1] = 0;
+  state->ways[2] = 1;
+
+  state->target = 2;
+  return state;
+}
+
+void extend_primes(ProblemState *state) {
+  while(state->largest_prime <= state->target) {
+    printf("largest_prime: %d <= target: %d\n", state->largest_prime, state->target);
+    int p = next_prime(state->largest_prime);
+    int_list_insert_back(state->primes, p);
+    state->largest_prime = p;
+    printf("Extended primes to include %d\n", p);
+    print_integer_list(state->primes);
+
+
+    // for every number n between our new prime and our current target,
+    // we need to update the ways to make that number that include
+    // our new prime p
+    printf("Our new prime is %d\n", p);
+    for(int n = p; n <= state->target; n++) {
+      printf("We can use that to make %d in %d ways\n", n, state->ways[n-p]);
+      state->ways[n] += state->ways[n-p];
+    }
+
+    print_ways(state);
+  }
+}
+
+void extend_target(ProblemState *state) {
+  while(state->target < state->largest_prime) { // < or <= ??
+    printf("target: %d < largest_prime: %d\n", state->target, state->largest_prime);
+    state->target++;
+    if(state->target >= state->ways_length) { expand_ways(state); }
+
+    ListNode *current_prime_node = state->primes->head;
+    while(current_prime_node) {
+
+      int prime= *((int *)(current_prime_node->value));
+      if(prime > state->target) {
+        printf("We can't use %d to make %d\n", prime, state->target);
+        break;
+      }
+      printf("We can use %d to make %d in %d ways\n", prime, state->target, state->ways[state->target - prime]);
+      state->ways[state->target] += state->ways[state->target - prime];
+
+      current_prime_node = current_prime_node->next;
+    }
+
+    print_ways(state);
+  }
+}
+
 int main() {
+  ProblemState *state = initialize();
 
-  int target = 2;
-  expand_ways(target);
-  ways[0] = 1; // there is exactly 1 way to make 0 -- use no primes at all
-  ways[1] = 0; // there is no way to make 1
-
-  List *primes = list_create();
-
-  int biggest_prime = 1;
-
-  while(ways[target] < 5000) {
-    biggest_prime = expand_primes(biggest_prime, primes);
-    while(biggest_prime <= target) {
-      ListNode *current_prime = primes->head;
-      while(current_prime) {
-        int prime = *(int *)(current_prime->value);
-        for(int n = biggest_prime; n <= target; n++) {
-
-          printf("biggestPrime: %d\n", biggest_prime);
-          printf("prime: %d\n", prime);
-          printf("target: %d\n", target);
-          printf("n: %d\n", target);
-          printf("\n");
-          printf("ways[%d]: %d\n", n, ways[n]);
-          printf("ways[n-prime]: %d\n", ways[n-prime]);
-          
-          ways[n] += ways[n - prime];
-          if(ways[n] >= 5000) {
-            printf("biggest prime: %d\n", biggest_prime);
-            printf("N: %d\n", n);
-            exit(0);
-          }
-          printf("\n\n");
-        }
-        current_prime = current_prime->next;
-      }
-      biggest_prime = expand_primes(biggest_prime, primes);
-    }
-
-    printf("Need to expand target\n\n");
-    target++;
-    expand_ways(target);
-    while(target <= biggest_prime) {
-
-      ListNode *current_prime = primes->head;
-      while(current_prime) {
-        int prime = *(int *)current_prime->value;
-        ways[target] += ways[target - prime]; 
-        current_prime = current_prime->next;
-      }
-
-      if(ways[target] >= 5000) {
-        printf("Target: %d\n", target);
-      }
-      
-      target++;
-      expand_ways(target);
-    }
-
-  
+  while(state->ways[state->target] < 5000) {
+    printf("Extend primes\n");
+    extend_primes(state);
+    printf("\n");
+    printf("Extend target\n");
+    extend_target(state);
+    printf("\n\n");
   }
 
-  printf("Found %d ways to make %d\n", ways[target], target);
-
-  return 0;
+  printf("N: %d", state->target);
 }
 
-/*
-  int main() {
-
-  int target = 64;
-  ways = calloc(target + 1, sizeof(int));
-  ways[0] = 1;
-  ways[1] = 0;
-
-  List *primes = list_create();
-
-  int biggest_prime = 1;
-  while(found_5000(target) == -1){
-
-    biggest_prime = next_prime(biggest_prime);
-    int *copy = calloc(1, sizeof(int));
-    *copy = biggest_prime;
-    list_insert_back(primes, (void *)copy); 
-
-    printf("Using Prime = %d\n", biggest_prime);
-
-    if(biggest_prime > target) {
-      printf("Prime = %d is bigger than Target = %d\n", biggest_prime, target);
-      return 0;
-      target *= 2;
-      expand_ways(target);
-      
-      // for each prime do this -- we've already calculated everything
-      // up to and including the old target, now we need to apply
-      // all of the smaller primes to the new values
-      ListNode *cur = primes->head;
-      while(NULL != cur) {
-        int *prime = (int *)(cur->value);
-        for(int j = *prime; j<=target; j++){
-          ways[j] += ways[j - *prime];
-        }
-        cur = cur->next;
-      }
-    } else {
-      printf("Prime = %d is smaller than Target = %d\n", biggest_prime, target);
-      for(int j = biggest_prime; j <= target; j++){
-        int extend_by = ways[j - biggest_prime];
-        ways[j] += extend_by;
-        if(extend_by > 0) {
-          printf("\tExtended ways[%d] by %d to %d\n", j, extend_by, ways[j]);
-        }
-      }
-    }
-  }
-
-  int index = found_5000(target);
-  printf("Found %d ways to make %d\n", ways[index], index);
-
-  return 0;
-}
-*/

@@ -242,7 +242,14 @@ void int_list_print_callback(void *value){
   printf("%d -> ", *((int *)value));
 }
 
+void int_list_insert_back(List *list, int new_value) {
+  int *copy = calloc(1, sizeof(int));
+  *copy = new_value;
+  list_insert_back(list, copy);
+}
+
 void print_integer_list(List *list){
   list_iterate(list, &int_list_print_callback);
   printf("\u2205\n");
 }
+
